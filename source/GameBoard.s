@@ -1,16 +1,18 @@
 .section .data
 .align 4
 
+xRes: .int 1023
+yRes: .int 767
 
 /*
 * Layout: 24 x 20 cell grid for the game screen
 * 0 = mario; 1 = GroundBrick; 2 = WallBrick; 3 = floatingBrick; 4 = questionBlock;
-* 5 = pipeUp; 6 = coin; 7 = Goomba; 8 = Koopa; 9 = empty;
+* 5 = pipeUp; 6 = coin; 7 = Goomba; 8 = Koopa; 9 = empty; `10 - emptyBlock;`
 */
 
 .globl GameState1
 GameState1:		// Starting state of first screen
-.byte 2,0,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
+.byte 2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
 .byte 2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
@@ -27,7 +29,7 @@ GameState1:		// Starting state of first screen
 .byte 2,9,9,9,9,9,9,9,4,2,2,2,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
-.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,5,9,9
+.byte 2,0,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,5,9,9
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 
@@ -73,7 +75,7 @@ GameState2Copy:
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
-.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,5,5,5,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
@@ -101,7 +103,7 @@ GameState3Copy:
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
-.byte 2,0,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,0,9,9,9,9,9,9,9,9,7,7,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 
@@ -147,12 +149,12 @@ GameReset:
 	mov 	counter, #0 						// set counter to 0
 
 CopyState:
-	ldrb 	r0, [orgState, counter]				// load value from original state
-	strb 	r0, [copyState, counter] 			// store value from original state
+	ldrb 	r1, [orgState, counter]				// load value from original state
+	strb 	r1, [copyState, counter] 			// store value from original state
 	add 	counter, #1 						// increment counter
 
 	cmp 	counter, #480 						// check if all cells were written to
-	blt 	GameReset							// keep branching until all cells copied
+	blt 	CopyState							// keep branching until all cells copied
 
 	.unreq 	orgState
 	.unreq	copyState
@@ -177,7 +179,7 @@ DrawGameScreen:
     y		 			.req	r9			// y value for the object to be drawn
     tmp		 		.req	r10			// temporary value used for checking row
 
-	push	 {r4-r10,lr}
+	push	 {r3-r10,lr}
 
 	mov 	 initX, r0 			// Set intial X
 	mov 	 initY, r1 			// Set intial Y
@@ -243,7 +245,7 @@ drawGroundBrick:
 	b 		CheckLoop
 
 drawWallBrick:
-	ldr 	r2, =GroundBrick // need to get ascii for wall
+	ldr 	r2, =WallBlock // need to get ascii for wall
 	bl 		DrawObject
 	b 		CheckLoop
 drawFloatingBrick:
@@ -298,9 +300,4 @@ done:
   .unreq      y
 	.unreq 			tmp
 
-	push	 {r4-r10, pc}
-
-
-
-.globl ClearScreen
-ClearScreen:
+	pop	 {r3-r10, pc}

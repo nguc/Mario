@@ -12,20 +12,18 @@ main:
 	bl		InitFrameBuffer
   bl    Init_GPIO
 
-/*
-  mov		r0, #0
-	mov		r1, #0
-  ldr   r2, =BlackScreen
-	bl		DrawGameScreen
-*/
+bl clearScreen
+bl GameReset
 
-	mov		r0, #0
-	mov		r1, #0
-  ldr   r2, =GameState1
-	bl		DrawGameScreen
+mov		r0, #0
+mov		r1, #0
+ldr   r2, =GameState1Copy
+bl		DrawGameScreen
+
 
 .globl startGame
 startGame:
+
 bl inGameControl
 
 

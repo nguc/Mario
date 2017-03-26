@@ -95,7 +95,7 @@ read_data:
 // args: r0 holds number of microseconds to wait
 .globl wait
 wait:
-        push {r3, lr}
+        push {r1-r3, lr}
 
         ldr r1, =0x3F003004 					// address of CLO
         ldr r2, [r1]							// load value of CLO
@@ -104,9 +104,9 @@ wait:
 waitLoop:
         ldr r3, [r1] 							// load current value of CLO
         cmp r2, r3 								// compare current time to delay time
-        bhi waitLoop      						// stop when CLO = r2
+        bhi waitLoop      				// stop when CLO = r2
 
-        pop {r3, pc}
+        pop {r1-r3, pc}
 
 
 // get info from the controller on which buttons were pressed
