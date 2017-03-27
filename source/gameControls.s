@@ -84,7 +84,12 @@ rightPress:
   b      gameControls
 
 downPress:
-  bl    MoveDown
+  bl    DownPressed             // do nothing unless mario is standing on an Up pipe
+
+  cmp   r0, #9                  // if empty cell below mario, fall
+  bne   gameControls
+
+  bl    decendLoop              // if Mario went down a pipe, animation for falling to next level
   b     gameControls
 
 aPress:                         // used for jumping
@@ -184,6 +189,7 @@ dcn:
   lsl   r0, #15
   bl    wait
 
+  mov   r0, #0                  // 0 = mario falling, not user pressing down
   bl    MoveDown
   cmp   r0, #9
   beq   dcn

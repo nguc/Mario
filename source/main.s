@@ -13,17 +13,15 @@ main:
   bl    Init_GPIO
 
 bl clearScreen
-bl GameReset
 
-mov		r0, #0
-mov		r1, #0
-ldr   r2, =GameState1Copy
+ldr   r0, =GameState1
+bl    GameReset
+
 bl		DrawGameScreen
 
 
 .globl startGame
 startGame:
-
 bl inGameControl
 
 
