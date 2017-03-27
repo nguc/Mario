@@ -8,7 +8,7 @@
 
 
 .globl MarioPosition
-MarioPosition: .byte  1, 17        	// x and y coord of Mario - will change when mario moves
+MarioPosition: .byte  1, 17        	// Starting x and y coord of Mario - will change when mario moves
 
 .globl OldCellObject
 OldCellObject:	.byte 9     // Save value in cell that mario will move to so we can redraw when mario moves away
@@ -41,37 +41,64 @@ MoveRight:
 
 /*  mov   r2, #1
   ldr   r3, =MoveDirection
-  strb  r2, [r3]                        // store the direction
+  strb  r2, [r3]                           // store the direction
 */
   ldr   r3, =CurrentGameState
-  ldrb  r3, [r3]        			           // get the value for which game state we are in
-  cmp 	r3, #2                           //check which game state we are in and updates the correct one
-  ldrlt GameState, =GameState1Copy       // Load the address of the Game State 1 array
-  ldreq GameState, =GameState2Copy       // Load the address of the Game State 2 array
-  ldrgt GameState, =GameState3Copy       // Load the address of the Game State 3 array
+  ldrb  r3, [r3]        			             // get the value for which game state we are in
+  cmp 	r3, #2                             //check which game state we are in and updates the correct one
+  ldrlt GameState, =GameState1Copy         // Load the address of the Game State 1 array
+  ldreq GameState, =GameState2Copy         // Load the address of the Game State 2 array
+  ldrgt GameState, =GameState3Copy         // Load the address of the Game State 3 array
 
-  ldr   r1, =MarioPosition      	       // Load address for location of character
-  ldrb  marioX, [r1]                     // loading x coord of mario
-  ldrb  marioY, [r1, #1]                 // loadking y coord of marioY
-  add   newX, marioX, #1                 // Find x value of cell to the right (int)
+  ldr   r1, =MarioPosition      	         // Load address for location of character
+  ldrb  marioX, [r1]                       // loading x coord of mario
+  ldrb  marioY, [r1, #1]                   // loadking y coord of marioY
+  add   newX, marioX, #1                   // Find x value of cell to the right (int)
 
-  // checking if move is valid by checking object to the right of mario
+
+  /*
+   * Check if mario is going to the next stage
+  */
+  cmp    newX, #24                         //check if mario is going to move off screen
+  blt    contR                             // if still in screen continue check if he can move 
+
+  mov   r2, #3                             // new game state value
+  ldr   r3, =CurrentGameState
+  strb  r2, [r3]                           // save change to game state
+
+  mov   r0, #1                             // new mario x pos
+  mov   r1, #17                            // new mario y pos
+  ldr   r3, =MarioPosition
+  strb  r0, [r3]                           // store x coord
+  strb  r1, [r3, #1]                       // store y coord
+
+  mov   r0, #9                             // empty block value
+  ldr   r3, =OldCellObject
+  strb  r0, [r3]                           // reset the fill value to empty cell
+
+  ldr   r0, =GameState3
+  bl    DrawGameScreen
+
+  b     doneR
+
+
+contR:
   mov   r2, #24
-  mla   currentCell, marioY, r2, newX     // Calculate cell to the right of mario. currentCell = (y * width) + Newx
+  mla   currentCell, marioY, r2, newX      // check if move valid by checking object to the right of mario. currentCell = (y * width) + Newx
   ldrb  r0, [GameState, currentCell]
-  mov   r1, #1                            // pass in direction
+  mov   r1, #1                             // pass in direction
   mov   r2, currentCell
   bl    CheckMove
 
-  cmp   r0, #0                            // if r0 is 0
-  beq   doneR                             // then cant move
+  cmp   r0, #0                             // if r0 is 0
+  beq   doneR                              // then cant move
 
   // Go here if able to move
-  ldr   r1, =MarioPosition      	       // Load address for location of character
-  strb   newX, [r1]                      // Update Mario postion
+  ldr   r1, =MarioPosition      	         // Load address for location of character
+  strb   newX, [r1]                        // Update Mario postion
 
   mov   r2, #24
-  mla   currentCell, marioY, r2, marioX  // Mario position in array. currentCell = (y * width) + x
+  mla   currentCell, marioY, r2, marioX    // Mario position in array. currentCell = (y * width) + x
 
   ldr   r2, =OldCellObject
   ldrb  valueOfOldCell, [r2]     	                    // get value for cell to replace mario
@@ -312,7 +339,7 @@ doneU:
 /* Moves Mario down if he is allowed
  * * 0 - none; 1 - right; 2 - left; 3 - up; 4 - down
  * Args:
- *  none
+ *  r0 - button pushed or not
  * Return:
  *  r0 - object below mario value
  */
@@ -326,6 +353,7 @@ MoveDown:
   GameState   .req    r9          	      // Holds address of the GameState array
 
   push        {r4-r9,lr}
+
 
   ldr   r3, =CurrentGameState
   ldrb  r3, [r3]        			           // get the value for which game state we are in
@@ -342,6 +370,7 @@ MoveDown:
 
   mov   r2, #24
   mla   currentCell, newY, r2, marioX                  // Find position below where mario was in array and replace
+  
   ldrb  r0, [GameState, currentCell]
   mov   r1, #4                                         // pass in direction
   mov   r2, currentCell
@@ -400,6 +429,7 @@ doneD:
 .unreq  newY
 .unreq  valueOfOldCell
 .unreq  GameState
+
 
 
   pop   {r4-r9,pc}
@@ -736,6 +766,63 @@ MoveLU:// moves diagonally down and right
 
 
         pop   {r4-r10,pc}
+
+    // ================================================================================================= //
+.globl DownPressed
+DownPressed:
+  marioX      .req    r4
+  marioY      .req    r5
+  currentCell .req    r6                  // The cell number you are moving from
+  newY        .req    r7                  // The cell number to the left of crnt position
+  valueOfOldCell .req r8                  // What is in the cell (ex. wall)
+  GameState   .req    r9                  // Holds address of the GameState array
+
+  push        {r4-r9,lr}
+
+  ldr   r3, =CurrentGameState
+  ldrb  r3, [r3]                         // get the value for which game state we are in
+  cmp   r3, #4                           //check which game state we are in and updates the correct one
+  ldrlt GameState, =GameState1Copy       // Load the address of the Game State 1 array
+  ldreq GameState, =GameState2Copy       // Load the address of the Game State 2 array
+  ldrgt GameState, =GameState3Copy       // Load the address of the Game State 3 array
+
+  ldr   r1, =MarioPosition               // Load address for location of character
+  ldrb  marioX, [r1]                     // loading x coord of mario
+  ldrb  marioY, [r1, #1]                 // loadking y coord of marioY
+  add   newY, marioY, #1                 // Find x value of cell to the right (int)
+
+
+  mov   r2, #24
+  mla   currentCell, newY, r2, marioX                  // Find position below where mario was in array and replace
+  
+  ldrb  r0, [GameState, currentCell]                   // get cell value 
+  cmp   r0, #5                                         // if cell value != 5...
+  bne   doneDP                                         // dont move
+
+  // else go to under pipe stage
+  mov   r0, #2
+  ldr   r3, =CurrentGameState
+  strb  r0, [r3]                          // change the current game state to 2
+
+  mov   r0, #1                            // new mario x pos
+  mov   r1, #0                            // new mario y pos
+  ldr   r3, =MarioPosition
+  strb  r0, [r3]                          // store x coord
+  strb  r1, [r3, #1]                      // store y coord
+
+  mov   r0, #9                            // empty block value
+  ldr   r3, =OldCellObject
+  strb  r0, [r3]                          // reset the fill value to empty cell
+
+  doneDP:
+  .unreq  marioX
+  .unreq  marioY
+  .unreq  currentCell
+  .unreq  newY
+  .unreq  valueOfOldCell
+  .unreq  GameState
+
+  pop   {r4-r9,pc}
 
     // ================================================================================================= //
 

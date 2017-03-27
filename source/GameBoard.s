@@ -58,11 +58,35 @@ GameState1Copy:		// This board used to update game state
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 
 /*
-* Load this screen when mario tries to go to the square that is out of the game screen if GameState1
+* Load this screen when mario goes into the pipe
 */
-.globl GameState2Copy
+
+.globl GameState2
 GameState2Copy:
 
+.byte 2,0,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
+.byte 2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,5,5,5,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,0,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+.byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+
+.globl GameState2Copy
+GameState2Copy:
 .byte 2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
 .byte 2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
@@ -81,6 +105,32 @@ GameState2Copy:
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 2,0,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+.byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+
+/*
+*Go to this screen when mario goes far left from stage 1 OR exits through the pipe from state 2
+*/
+.globl GameState3
+GameState3:
+.byte 2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
+.byte 2,9,9,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9
+.byte 2,0,9,9,9,9,9,9,9,9,7,7,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 
@@ -106,6 +156,7 @@ GameState3Copy:
 .byte 2,0,9,9,9,9,9,9,9,9,7,7,9,9,9,9,9,9,9,9,9,9,9,9
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+
 
 .globl BlackScreen
 BlackScreen:
@@ -165,27 +216,25 @@ CopyState:
 
 /* Draws the first stage of the game
 * Args
-* r0 - x coord of game screen origin (top)
-* r1 - y coord of game screen origin (left)
-* r2 - game state addr
+* r0 - game state address
 */
 .globl DrawGameScreen
 DrawGameScreen:
-		initX	 		.req   r4			// x origin
-    initY	 		.req   r5			// y origin
-    state 	 	.req	r6			// Game state used
-    counter  	.req	r7
+	initX	 			.req    r4			// x origin
+    initY	 			.req    r5			// y origin
+    state 	 			.req	r6			// Game state used
+    counter  			.req	r7
     x		 			.req	r8			// x value for the object to be drawn
     y		 			.req	r9			// y value for the object to be drawn
-    tmp		 		.req	r10			// temporary value used for checking row
+    tmp		 			.req	r10			// temporary value used for checking row
 
 	push	 {r3-r10,lr}
 
-	mov 	 initX, r0 			// Set intial X
-	mov 	 initY, r1 			// Set intial Y
+	mov 	 initX, #0 			// Set intial X
+	mov 	 initY, #0 			// Set intial Y
 	mov 	 x, initX 			// initialize x coord of object
 	mov 	 y, initY 			// initialize y coord of object
-	mov 	 state, r2 			// copy address of state used
+	mov 	 state, r0 			// copy address of state used
 	mov 	 counter, #0 		// initialize counter to 0
 
 CheckObject:
