@@ -189,7 +189,8 @@ BlackScreen:
 
 /*Resets the copy board to the current game state
 * arguments
-* r0 - board to reset to
+* r0 - original board address
+* r1 - board to copy to address
 */
 .globl GameReset
 GameReset:
@@ -200,9 +201,7 @@ GameReset:
 	push	{r4-r6, lr}
 
 	mov		orgState, r0				// Load address of original array
-	ldr		copyState, =GameState1Copy			// Load address of new array
-
-	// repeat for states 2 and 3
+	ldr		copyState, r1		// Load address of new array
 
 	mov 	counter, #0 						// set counter to 0
 

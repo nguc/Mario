@@ -15,6 +15,15 @@ main:
 bl clearScreen
 
 ldr   r0, =GameState1
+ldr   r1, =GameState1Copy
+bl    GameReset
+
+ldr   r0, =GameState2
+ldr   r1, =GameState2Copy
+bl    GameReset
+
+ldr   r0, =GameState3
+ldr   r1, =GameState3Copy
 bl    GameReset
 
 bl		DrawGameScreen
