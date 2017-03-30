@@ -31,7 +31,7 @@ gameControls:
   lsl   r4, #3                  // align bit to [3]
   and   r5, r0, r4              // test if "start" was pressed
   teq   r5, #0
-  //beq   startPress
+  beq   startPress
 
   lsl   r4, #2                  // align bit to [5]
   and   r5, r0, r4              // test if "down" was presed
@@ -61,8 +61,43 @@ bPress:
  // used for powers?
 
 startPress:
-  // open the ingame meun
-  // change to menu gameControls
+  bl DrawInGAMEMenu
+  bl inGameMenuControlRead
+  cmp r0, #0                  //Same thing as our startGame, if 0 Restart else QuitGame
+  bne quitGame
+
+  ldr   r0, =LifeCount
+  ldrb  r1, [r0]
+  mov   r1, #51
+  strb  r1, [r0]
+
+  ldr   r0, =ScoreINT
+  ldrb  r1, [r0]
+  ldrb  r2, [r0,#1]
+  mov   r2, #48
+  mov   r1, #48
+  strb  r1, [r0]
+  strb  r1, [r0,#1]
+
+  ldr   r0, =CoinBlockCounter
+  mov   r1, #5
+  strb  r1, [r0]
+
+  ldr r0, =GameState1
+  ldr r1, =GameState1Copy
+  bl  GameReset
+
+  ldr r0, =GameState2
+  ldr r1, =GameState2Copy
+  bl  GameReset
+
+  ldr r0, =GameState3
+  ldr r1, =GameState3Copy
+  bl  GameReset
+  b   StartTheGame
+
+quitGame:
+  b  startingPoint
 
 leftPress:
   bl    MoveLeft               // move player right if possible
@@ -104,6 +139,7 @@ aPress:                         // used for jumping
 
 jumpUp:                         // does a straight up jump
   bl  jumpUpLoop
+
   bl  decendLoop
 
   b gameControls
@@ -111,11 +147,16 @@ jumpUp:                         // does a straight up jump
 
 jumpLeft:                       // does an arch jump towards the left
   bl  jumpUpLoop
+
+  cmp r0, #0
+  beq gameControls
+
   mov   r0, #1
   lsl   r0, #15
   bl    wait                    // slow it down to see the jumping animation
 
   bl  MoveLU
+
   mov   r0, #1
   lsl   r0, #15
   bl    wait                    // slow it down to see the jumping animation
@@ -138,11 +179,16 @@ jumpLeft:                       // does an arch jump towards the left
 
 jumpRight:          // does an arch jump towards the right
   bl  jumpUpLoop
+
+  cmp r0, #0
+  beq gameControls
+
   mov   r0, #1
   lsl   r0, #15
   bl    wait                    // slow it down to see the jumping animation
 
   bl  MoveRU
+
   mov   r0, #1
   lsl   r0, #15
   bl    wait                    // slow it down to see the jumping animation
@@ -170,6 +216,12 @@ jumpUpLoop:
 jmp:
   bl    MoveUp
 
+  cmp   r0, #2                  // check if wall block was returned above mario
+  beq   BreakBlock
+
+  cmp   r0, #4                 // chech if coin block was returned above mario
+  beq   Coinblock
+
   mov   r0, #1
   lsl   r0, #15
   bl    wait                    // slow it down to see the jumping animation
@@ -191,9 +243,20 @@ dcn:
 
   mov   r0, #0                  // 0 = mario falling, not user pressing down
   bl    MoveDown
-  cmp   r0, #9
+
+  cmp   r0, #9                  // check if it is empty
   beq   dcn
 
+  cmp   r0, #6                   // check if it is a coin
+  beq   dcn
+
+  cmp   r0, #7                  // check if it is a goomba
+  beq KillGoomba
+
+  cmp   r0, #8                  // check if it is a Koopa
+  beq   doneDCN
+
+doneDCN:
   pop   {pc}
 
 finalCheck:
@@ -202,4 +265,31 @@ finalCheck:
   beq   leftPress               // if LRPush = 1 then only left was pressed
   bgt   rightPress              // if LRPush = 2 then only right was pressed
 
+.globl restartGameEND
+restartGameEND:
 pop   {r4-r5, pc}
+
+
+KillGoomba:
+  bl GoombaKill
+  bl ScoreEvent
+  bl jumpUpLoop
+  bl decendLoop
+
+  mov r0, #0                    // make mario continue to fall down
+  b   doneDCN
+
+BreakBlock:
+  bl BlockBreak
+  bl decendLoop
+
+  mov r0, #0                    // make mario continue to fall down
+  b   doneDCN
+
+Coinblock:
+  bl ScoreEvent                      // update score
+  bl UpdateCoinBlock
+  bl decendLoop
+
+  mov r0, #0                   // make mario continue to fall down
+  b   doneDCN
