@@ -39,12 +39,20 @@ MoveRight:
 
   push        {r4-r10,lr}
 
+<<<<<<< HEAD
+=======
+/*  mov   r2, #1
+  ldr   r3, =MoveDirection
+  strb  r2, [r3]                           // store the direction
+*/
+>>>>>>> origin/master
   ldr   r3, =CurrentGameState
   ldrb  r3, [r3]        			             // get the value for which game state we are in
   cmp 	r3, #2                             //check which game state we are in and updates the correct one
   ldrlt GameState, =GameState1Copy         // Load the address of the Game State 1 array
   ldreq GameState, =GameState2Copy         // Load the address of the Game State 2 array
   ldrgt GameState, =GameState3Copy         // Load the address of the Game State 3 array
+<<<<<<< HEAD
 
   ldr   r1, =MarioPosition      	         // Load address for location of character
   ldrb  marioX, [r1]                       // loading x coord of mario
@@ -100,6 +108,43 @@ MoveRight:
 
 contR:
   mov   r2, #24
+=======
+
+  ldr   r1, =MarioPosition      	         // Load address for location of character
+  ldrb  marioX, [r1]                       // loading x coord of mario
+  ldrb  marioY, [r1, #1]                   // loadking y coord of marioY
+  add   newX, marioX, #1                   // Find x value of cell to the right (int)
+
+
+  /*
+   * Check if mario is going to the next stage
+  */
+  cmp    newX, #24                         //check if mario is going to move off screen
+  blt    contR                             // if still in screen continue check if he can move 
+
+  mov   r2, #3                             // new game state value
+  ldr   r3, =CurrentGameState
+  strb  r2, [r3]                           // save change to game state
+
+  mov   r0, #1                             // new mario x pos
+  mov   r1, #17                            // new mario y pos
+  ldr   r3, =MarioPosition
+  strb  r0, [r3]                           // store x coord
+  strb  r1, [r3, #1]                       // store y coord
+
+  mov   r0, #9                             // empty block value
+  ldr   r3, =OldCellObject
+  strb  r0, [r3]                           // reset the fill value to empty cell
+
+  ldr   r0, =GameState3
+  bl    DrawGameScreen
+
+  b     doneR
+
+
+contR:
+  mov   r2, #24
+>>>>>>> origin/master
   mla   currentCell, marioY, r2, newX      // check if move valid by checking object to the right of mario. currentCell = (y * width) + Newx
   ldrb  r0, [GameState, currentCell]
   mov   r1, #1                             // pass in direction
@@ -108,18 +153,29 @@ contR:
 
   cmp   r0, #0                             // if r0 is 0
   beq   doneR                              // then cant move
+<<<<<<< HEAD
   cmp   r0, #2                             // check if mario loses life
   bne   contR2                             // if not, then move right
 
+=======
+
+  // Go here if able to move
+  ldr   r1, =MarioPosition      	         // Load address for location of character
+  strb   newX, [r1]                        // Update Mario postion
+>>>>>>> origin/master
 
 // ===== set up mario losing a loseLife ===== //
 
 
   // replace mario current position with empty cell in the array
   mov   r2, #24
+<<<<<<< HEAD
   mla   marioStartPos, marioY, r2, marioX    // Mario current position in array
   mov   r2, #9
   strb  r2, [GameState, currentCell]
+=======
+  mla   currentCell, marioY, r2, marioX    // Mario position in array. currentCell = (y * width) + x
+>>>>>>> origin/master
 
   // put mario in his starting position in array
   mov   r2, #24
@@ -485,7 +541,11 @@ MoveDown:
   contD2:
   mov   r2, #24
   mla   currentCell, newY, r2, marioX                  // Find position below where mario was in array and replace
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/master
   ldrb  r0, [GameState, currentCell]
   mov   r1, #4                                         // pass in direction
   mov   r2, currentCell
@@ -540,6 +600,11 @@ doneD:
 .unreq  marioStartPos
 .unreq  GameState
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> origin/master
   pop   {r4-r9,pc}
 
 // ================================================================================================= //
@@ -909,12 +974,20 @@ DownPressed:
 
 
   mov   r2, #24
+<<<<<<< HEAD
   mla   currentCell, newY, r2, marioX    // Find position below where mario was in array and replace
 
   // check if mario is standing on a pipe
   ldrb  r0, [GameState, currentCell]     // get cell value
   cmp   r0, #5                           // if cell value != 5...
   bne   doneDP                           // dont move
+=======
+  mla   currentCell, newY, r2, marioX                  // Find position below where mario was in array and replace
+  
+  ldrb  r0, [GameState, currentCell]                   // get cell value 
+  cmp   r0, #5                                         // if cell value != 5...
+  bne   doneDP                                         // dont move
+>>>>>>> origin/master
 
   // else go to under pipe stage
   mov   r0, #2
@@ -927,6 +1000,7 @@ DownPressed:
   strb  r0, [r3]                          // store x coord
   strb  r1, [r3, #1]                      // store y coord
 
+<<<<<<< HEAD
   bl    clearScreen                       // clear the screen
 
 
@@ -936,11 +1010,16 @@ DownPressed:
   bl    DrawGameScreen                    // draw next stage
   bl    drawScoreBoard
 
+=======
+>>>>>>> origin/master
   mov   r0, #9                            // empty block value
   ldr   r3, =OldCellObject
   strb  r0, [r3]                          // reset the fill value to empty cell
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
   doneDP:
   .unreq  marioX
   .unreq  marioY
