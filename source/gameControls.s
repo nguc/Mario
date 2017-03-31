@@ -118,11 +118,7 @@ rightPress:
   bl     decendLoop            // go back up to gameControls
   b      gameControls
 
-<<<<<<< HEAD
 downPress:
-=======
-downPress:                     
->>>>>>> origin/master
   bl    DownPressed             // do nothing unless mario is standing on an Up pipe
 
   cmp   r0, #9                  // if empty cell below mario, fall
