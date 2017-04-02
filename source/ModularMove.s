@@ -50,7 +50,7 @@ MoveRight:
   blt     contR                             // if still in screen continue check if he can move
 
   // ==== moving mario to a new stage ==== //
-
+gotoStage3:                                // walking to stage 3 from stage 2
   mov     r0, marioX
   mov     r1, marioY
   mov     r2, GameState
@@ -63,11 +63,28 @@ MoveRight:
 
   b     doneR
 
+gotoPipe3:                                 // use the pipe in stage 2 to go to stage 3
+  mov     r0, marioX
+  mov     r1, marioY
+  mov     r2, GameState
+  bl      ReplaceMarioInCurrent            // delete mario on screen and replace his array value with an empty cell
+
+  mov     r0, #3                           // x coord of pipe
+  mov     r1, #16                          // y coord above pipe
+  mov     r2, #3                           // stage 3
+  bl      SetupNextStage 
+
+  b       doneR
+
  // ==== check if mario can move ==== //
 contR:
   mov   r2, #24
   mla   currentCell, marioY, r2, newX      // check if move valid by checking object to the right of mario. currentCell = (y * width) + Newx
   ldrb  r0, [GameState, currentCell]
+
+  cmp   r0, #13                            // check if object is a left facing pipe
+  beq   gotoPipe3                          // .. go through the pipe if it is
+
   mov   r1, #1                             // pass in direction
   mov   r2, currentCell
   bl    CheckMove                          // returns a value that tells us if mario can move or not
@@ -671,7 +688,7 @@ DownPressed:
   cmp   r0, #5                           // if cell value != 5...
   bne   doneDP                           // dont move
 
-  mov     r0, marioX
+  mov     r0, marioX                     // else set up marios new location 
   mov     r1, marioY
   mov     r2, GameState
   bl      ReplaceMarioInCurrent            // delete mario on screen and replace his array value with an empty cell
@@ -741,6 +758,9 @@ CheckMove:
     beq DoorTopMove
 
     cmp object, #14       // pipe body
+    beq NoMove
+
+    cmp object, #15       // pipe up
     beq NoMove
 
     cmp object, #9        // empty - always move
@@ -825,8 +845,6 @@ GoombaKill:
   mov     r1, newY
   mov     r2, GameState
   bl      ReplaceMarioInCurrent            // delete mario on screen and replace his array value with an empty cell
-
-
 
   .unreq  marioX
   .unreq  marioY
@@ -950,7 +968,7 @@ doneCoinblk:
 
 
 
-// ===================== trying to make the move methods more modular ====================== //
+// ===================== Move methods ====================== //
 
 /*
 * This method checks which game state mario is currently in and returns the gamestate address

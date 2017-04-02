@@ -8,7 +8,7 @@ yRes: .int 767
 * Layout: 24 x 20 cell grid for the game screen
 * 0 = mario; 1 = GroundBrick; 2 = WallBrick; 3 = floatingBrick; 4 = questionBlock;
 * 5 = pipeUp; 6 = coin; 7 = Goomba; 8 = Koopa; 9 = empty; `10 - emptyBlock;`
-* 11 - doorTop; 12-doorBottom; 13 - pipeLeft; 14 - PipeBodyUp
+* 11 - doorTop; 12-doorBottom; 13 - pipeLeft; 14 - PipeBodyUp; 15 - upPipe, no transport
 */
 
 .globl GameState1
@@ -158,7 +158,7 @@ GameState3:
 .byte 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,2
 .byte 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,2
 .byte 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,11,9,2
-.byte 9,9,9,5,9,9,9,9,7,9,9,9,9,9,9,9,9,9,9,9,9,12,9,2
+.byte 9,9,9,15,9,9,9,9,7,9,9,9,9,9,9,9,9,9,9,9,9,12,9,2
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,9,1,1,1,1,1,1,1
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,9,1,1,1,1,1,1,1
 
@@ -181,7 +181,7 @@ GameState3Copy:
 .byte 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,2
 .byte 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,2
 .byte 9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,11,9,2
-.byte 9,9,9,5,9,9,9,9,7,9,9,9,9,9,9,9,9,9,9,9,9,12,9,2
+.byte 9,9,9,15,9,9,9,9,7,9,9,9,9,9,9,9,9,9,9,9,9,12,9,2
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,9,1,1,1,1,1,1,1
 .byte 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,9,9,1,1,1,1,1,1,1
 
@@ -318,6 +318,9 @@ CheckObject:
 
 	cmp 	r3, #14
 	beq   PipeBody
+
+	cmp 	r3, #15
+	beq 	drawPipeUp
 
 /*For each draw function...
 * value of x and y are from the CheckObject function above
