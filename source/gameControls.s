@@ -8,6 +8,7 @@ inGameControl:
   push  {r4-r5, lr}
 
 gameControls:
+  bl checkWinCondition
 
   mov 	r0, #1
   lsl 	r0, #18
@@ -128,8 +129,6 @@ downPress:
   b     gameControls
 
 aPress:                         // used for jumping
-
-
   cmp   LRPush, #1
   blt   jumpUp
   beq   jumpLeft
@@ -139,7 +138,6 @@ aPress:                         // used for jumping
 
 jumpUp:                         // does a straight up jump
   bl  jumpUpLoop
-
   bl  decendLoop
 
   b gameControls
@@ -148,7 +146,7 @@ jumpUp:                         // does a straight up jump
 jumpLeft:                       // does an arch jump towards the left
   bl  jumpUpLoop
 
-  cmp r0, #0
+  cmp r0, #0                   // if r0 contains 0 - mario cant move
   beq gameControls
 
   mov   r0, #1
@@ -180,7 +178,7 @@ jumpLeft:                       // does an arch jump towards the left
 jumpRight:          // does an arch jump towards the right
   bl  jumpUpLoop
 
-  cmp r0, #0
+  cmp r0, #0                    // if r0 = 0 then mario cant move up
   beq gameControls
 
   mov   r0, #1
@@ -188,7 +186,6 @@ jumpRight:          // does an arch jump towards the right
   bl    wait                    // slow it down to see the jumping animation
 
   bl  MoveRU
-
   mov   r0, #1
   lsl   r0, #15
   bl    wait                    // slow it down to see the jumping animation
@@ -209,7 +206,7 @@ jumpRight:          // does an arch jump towards the right
 
 
 // ================================================================================== //
-
+// mario jumps up 3 cells unless there is something above him
 jumpUpLoop:
   push  {lr}
   mov   r4, #3
@@ -226,13 +223,13 @@ jmp:
   lsl   r0, #15
   bl    wait                    // slow it down to see the jumping animation
 
-  sub   r4, #1
-  cmp   r4, #0                  // if mario has jump all cells
-  bne   jmp                     // go read controller
+  sub   r4, #1                  // decrement jump counter
+  cmp   r4, #0                  // if counter not at 0
+  bne   jmp                     // keep jumping
 
   pop   {pc}
 
-
+// Makes mario fall until there is not an empty cell below him
 decendLoop:
   push  {lr}
 
@@ -253,17 +250,23 @@ dcn:
   cmp   r0, #7                  // check if it is a goomba
   beq KillGoomba
 
-  cmp   r0, #8                  // check if it is a Koopa
-  beq   doneDCN
+  cmp   r0, #8                  // check if it is a koopa - kill animation is the same as goomba
+  beq KillGoomba
+
+  cmp   r0, #11                 // check if it is the top of the door
+  beq   DoorTopMove
 
 doneDCN:
   pop   {pc}
 
+
+// check all buttons that were pressed on the controller - use for determining jump direction
 finalCheck:
   cmp   LRPush, #1
   blt   gameControls            // if LRPush = 0 then nothing was pressed
   beq   leftPress               // if LRPush = 1 then only left was pressed
   bgt   rightPress              // if LRPush = 2 then only right was pressed
+
 
 .globl restartGameEND
 restartGameEND:
@@ -272,7 +275,6 @@ pop   {r4-r5, pc}
 
 KillGoomba:
   bl GoombaKill
-  bl ScoreEvent
   bl jumpUpLoop
   bl decendLoop
 
@@ -288,8 +290,52 @@ BreakBlock:
 
 Coinblock:
   bl ScoreEvent                      // update score
+  bl CollectCoin
   bl UpdateCoinBlock
   bl decendLoop
 
-  mov r0, #0                   // make mario continue to fall down
+  mov r0, #0                    // make mario continue to fall down
   b   doneDCN
+
+DoorTopMove:                    // makes mario fall through the door and redraws the door instead of deleting it
+marioX      .req    r4
+marioY      .req    r5
+currentCell .req    r6      		        // The cell number you are moving from
+newY        .req    r7          	      // The cell number to the left of crnt position
+GameState   .req    r8          	      // Holds address of the GameState array
+
+bl    MoveDown
+
+bl    GetCurrentGameState                // gets the address of the current game state array
+mov   GameState, r0                      // save the return value
+
+ldr   r1, =MarioPosition      	       // Load address for location of character
+ldrb  marioX, [r1]                     // loading x coord of mario
+ldrb  marioY, [r1, #1]                 // loadking y coord of marioY
+add   newY, marioY, #1                 // Find x value of cell to the below (int)
+
+ldr   r1, =MarioPosition      	                    // Load address for location of character
+strb  newY, [r1, #1]                                // Update Marios postion
+
+mov   r0, marioX
+mov   r1, marioY
+mov   r2, GameState
+bl    ReplaceMarioInCurrent                   // erase mario on screen and in array
+
+mov   r0, marioX
+mov   r1, marioY
+ldr   r2, =DoorTop                    // replace the top of the door
+bl    DrawObject
+
+mov   r0, marioX
+mov   r1, newY
+mov   r2, GameState
+bl    MoveMarioToNewCell                     // draw mario on screen and find position below mario in array and replace
+
+.unreq  marioX
+.unreq  marioY
+.unreq  currentCell
+.unreq  newY
+.unreq  GameState
+
+b     doneDCN

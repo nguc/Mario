@@ -7,18 +7,32 @@ _start:
 .section .text
 
 main:
-  mov     sp, #0x8000
+  bl		InstallIntTable			// *** MUST COME FIRST, sets the stack pointer
 	bl		EnableJTAG
 	bl		InitFrameBuffer
   bl    Init_GPIO
 
+  // enable GPIO IRQ lines on Interrupt Controller
+	ldr		r0, =0x3F00B214			// Enable IRQs 2
+	mov		r1, #0x001E0000			// bits 17 to 20 set (IRQs 49 to 52)
+	str		r1, [r0]
+
+	// Enable IRQ
+	mrs		r0, cpsr
+	bic		r0, #0x80
+	msr		cpsr_c, r0
 
 .globl startingPoint
-startingPoint:
+startingPoint:              // resets all the gamestates to starting state and resets all game values to default values
 ldr   r0, =LifeCount
 ldrb  r1, [r0]
 mov   r1, #51
 strb  r1, [r0]
+
+ldr   r0, =CoinINT
+mov   r1, #48
+strb  r1, [r0]
+strb  r1, [r0, #1]
 
 ldr   r0, =ScoreINT
 ldrb  r1, [r0]
@@ -61,10 +75,6 @@ StartTheGame:
     mov r3, #17
     strb r2, [r1]
     strb r3, [r1, #1]
-
-    ldr r1, =OldCellObject
-    mov r2, #9
-    strb r2, [r1]
 
     ldr r1, =CurrentGameState
     mov  r2, #1

@@ -51,13 +51,22 @@ Score:
 Life:
       .asciz "Life: "
 
+.globl Coins
+Coins:
+      .asciz "Coins: "
+
 .globl ScoreINT
 ScoreINT:
       .byte 48,48,48,48,0             // 0 at the stops the drawing
 
+.globl CoinINT
+CoinINT:
+      .byte 48, 48, 0
+
 .globl LifeCount
 LifeCount:
-      .byte 51
+      .byte 51,0
+
 
 
 /*
@@ -154,6 +163,15 @@ drawScoreBoard:
         bl     DrawSentance
         bl    drawUpdatedScore
 
+
+        mov    r0, #400
+        mov    r1, #64
+        ldr    r2, =0xFFFF
+        ldr    r3, =Coins
+        bl     DrawSentance
+        bl    drawUpdatedCoins
+
+
         mov    r0, #600
         mov    r1, #64
         ldr    r2, =0xFFFF
@@ -176,7 +194,6 @@ readLoop:
               teq r0, r1          //if they are equal, it means nothing is pressed
               beq readLoop
 
-
               mov   r2, #1
               lsl   r2, #8                  // align bit to [8]
               and   r3, r0, r2              // test if "A" was presed
@@ -187,14 +204,12 @@ readLoop:
               lsl   r2, #4                  // align bit to [4]
               and   r3, r0, r2              // test if "up" was presed
               teq   r3, #0                  //up
-
               beq  up
 
               mov   r2, #1
               lsl   r2, #5                  // align bit to [5]
               and   r3, r0, r2              // test if "down" was presed
               teq   r3, #0
-
               beq  down                     //down
 
       up:
@@ -280,23 +295,27 @@ inGameMenuControlRead:
       mov  updown1, #0               // initialize at RestartGame
 
 readLoop1:
+      mov 	r0, #1
+      lsl 	r0, #18
+      bl 		wait                    // make a delay so user doesnt double click
+
       bl  read_SNES
       ldr r1, =0xffff     //Test if anything has been pressed
       teq r0, r1          //if they are equal, it means nothing is pressed
       beq readLoop1
+
+      mov   r2, #1                  //align bit to [3]
+      lsl   r2, #3                  // test if "Start" was pressed
+      and   r3, r0, r2
+      teq   r3, #0
+      beq   continueGame
 
       mov   r2, #1
       lsl   r2, #8                  // align bit to [8]
       and   r3, r0, r2              // test if "A" was pressed
       teq   r3, #0
       beq   inGameMenuA
-/*
-      mov   r2, #1                  //align bit to [3]
-      lsl   r2, #3                  // test if "Start" was pressed
-      and   r3, r0, r2
-      teq   r3, #0
-      beq   restartGameEND
-*/
+
       mov   r2, #1
       lsl   r2, #4                  // align bit to [4]
       and   r3, r0, r2              // test if "up" was presed
@@ -309,10 +328,13 @@ readLoop1:
       teq   r3, #0
       beq   inGamedown                     //down
 
+      b     readLoop1
+
 inGameup:
       mov     updown1, #0
       bl      restartGameSelect
       b       readLoop1
+
 inGamedown:
       mov     updown1, #1
       bl      quitGameSelect
@@ -329,10 +351,18 @@ inGameMenuQuitGame:
       mov  r0, #1
       b    inGameMenuDone
 
+continueGame:     // redraws the current game screen the way it was
+      bl    GetCurrentGameState
+      bl    DrawGameScreen
+      b     startGame
+
 inGameMenuDone:
       .unreq updown1
       pop   {r4,pc}
 
+
+
+// updates the score when mario kills an enemy collects a coin
 .globl ScoreEvent
 ScoreEvent:
       push  {lr}
@@ -358,6 +388,29 @@ ScoreEvent:
       bl  drawUpdatedScore
       pop {pc}
 
+.globl CollectCoin
+CollectCoin:
+      push  {lr}
+
+      mov    r0, #464
+      mov    r1, #64
+      ldr    r2, =0x0000
+      ldr    r3, =CoinINT
+      bl     DrawSentance
+
+      ldr r0, =CoinINT
+      ldrb r1, [r0, #1]
+      ldrb r2, [r0]
+      cmp  r1, #57
+      moveq r1, #48
+      addeq r2, #1
+      addne r1, #1
+
+      strb  r1, [r0,#1]
+      strb  r2, [r0]
+
+      bl  drawUpdatedCoins
+      pop {pc}
 /* Method to keep track of lives - need to update number of lives and draw to screen*/
 .globl lostLife
 lostLife:
@@ -437,6 +490,17 @@ drawUpdatedScore:
       bl     DrawSentance
       pop  {pc}
 
+drawUpdatedCoins:
+      push {lr}
+
+      // draw new coin collected amount
+      mov    r0, #464
+      mov    r1, #64
+      ldr    r2, =0xAFA0
+      ldr    r3, =CoinINT
+      bl     DrawSentance
+      pop  {pc}
+
 .globl WinGame
 WinGame:
       bl clearScreen
@@ -455,3 +519,34 @@ WinGame:
       ldr    r0, =3000000
       bl     wait
       b      startingPoint
+
+// checks if mario is in the right stage, then checks if he is in position to win (door)
+.globl checkWinCondition
+checkWinCondition:
+    stage     .req r4
+    x         .req r5
+    y         .req r6
+
+    push  {r4-r6, lr}
+
+    ldr   r3, =CurrentGameState               // check if mario is in stage 3
+    ldrb  stage, [r3]
+    cmp   stage, #3
+    bne   doneCheck
+
+    ldr   r3, =MarioPosition                  // check if mario is at the door (21,17)
+    ldrb  x, [r3]
+    ldrb  y, [r3, #1]
+    cmp   x, #21
+    bne   doneCheck
+    cmp   y, #17
+    bne   doneCheck
+
+    bl    WinGame
+
+doneCheck:
+    .unreq  stage
+    .unreq  x
+    .unreq  y
+
+    pop   {r4-r6, pc}
